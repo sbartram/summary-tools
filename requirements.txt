@@ -1,0 +1,5 @@
+anthropic
+youtube-transcript-api
+yt-dlp
+trafilatura
+pywhispercpp

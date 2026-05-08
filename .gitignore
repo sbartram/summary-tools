@@ -1,0 +1,6 @@
+ggml-tiny.en.bin
+*.log
+tmp/
+summaries/
+.claude/settings.local.json
+.venv/
