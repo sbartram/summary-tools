@@ -4,3 +4,4 @@ tmp/
 summaries/
 .claude/settings.local.json
 .venv/
+.envrc
