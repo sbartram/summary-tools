@@ -1,4 +1,4 @@
-# yt-summary
+# summarize
 
 Python CLI that summarizes YouTube videos and web articles with Claude. Pulls captions (or extracts article body), chunks the text, and writes a Markdown file with TL;DR, key takeaways, walkthrough, and notable quotes.
 
@@ -50,12 +50,12 @@ direnv allow
 ## Usage
 
 ```bash
-python yt-summarize <url>                          # single video
-python yt-summarize --batch urls.txt               # one URL per line; '#' lines ignored
-python yt-summarize <url> --out-dir ./notes        # custom output directory
-python yt-summarize <url> --model claude-haiku-4-5-20251001
-python yt-summarize --transcript-file FILE [--title "..."] [--source "..."]
-python yt-summarize --article <url>                # web article (e.g. blog post)
+python summarize <url>                          # single video
+python summarize --batch urls.txt               # one URL per line; '#' lines ignored
+python summarize <url> --out-dir ./notes        # custom output directory
+python summarize <url> --model claude-haiku-4-5-20251001
+python summarize --transcript-file FILE [--title "..."] [--source "..."]
+python summarize --article <url>                # web article (e.g. blog post)
 ```
 
 Output lands in `./summaries/YYYY-MM-DD_<slug>.md`.

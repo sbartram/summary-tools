@@ -11,12 +11,12 @@ if you're not running the cloud-sandbox transcriber locally.
 ## Usage
 
 ```bash
-python yt-summarize <url>                          # single video
-python yt-summarize --batch urls.txt               # one URL per line; '#' lines ignored
-python yt-summarize <url> --out-dir ./notes        # custom output directory
-python yt-summarize <url> --model claude-haiku-4-5-20251001
-python yt-summarize --transcript-file FILE [--title "..."] [--source "..."]
-python yt-summarize --article <url>                # web article (e.g. blog post)
+python summarize <url>                          # single video
+python summarize --batch urls.txt               # one URL per line; '#' lines ignored
+python summarize <url> --out-dir ./notes        # custom output directory
+python summarize <url> --model claude-haiku-4-5-20251001
+python summarize --transcript-file FILE [--title "..."] [--source "..."]
+python summarize --article <url>                # web article (e.g. blog post)
 ```
 
 Output: `./summaries/YYYY-MM-DD_<slug>.md`
@@ -67,7 +67,7 @@ Roughly $0.05–0.15 per hour of video on Sonnet. A 1-hour video typically runs 
 
 ## Companion: `run_transcribe.py`
 
-Runs in a Claude Code cloud sandbox (paths under `/sessions/.../mnt/yt-summary/`). Transcribes `/tmp/podcast.wav` with `pywhispercpp` + `ggml-tiny.en.bin` and writes `<name>_transcript.txt` in the whisper format consumed by `--transcript-file`. The hardcoded sandbox paths are intentional — don't "fix" them for local use.
+Runs in a Claude Code cloud sandbox (paths under `/sessions/.../mnt/summary-tools/`). Transcribes `/tmp/podcast.wav` with `pywhispercpp` + `ggml-tiny.en.bin` and writes `<name>_transcript.txt` in the whisper format consumed by `--transcript-file`. The hardcoded sandbox paths are intentional — don't "fix" them for local use.
 
 The `ggml-tiny.en.bin` weights come from `https://huggingface.co/ggerganov/whisper.cpp` (gitignored, ~78 MB). README.md has the curl command.
 
