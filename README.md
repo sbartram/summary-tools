@@ -1,6 +1,7 @@
-# summarize
+# summary-tools
 
-Python CLI that summarizes YouTube videos and web articles with Claude. Pulls captions (or extracts article body), chunks the text, and writes a Markdown file with TL;DR, key takeaways, walkthrough, and notable quotes.
+Python CLI that summarizes YouTube videos, transcripts, and web articles with Claude.
+Pulls captions (or extracts article body), chunks the text, and writes a Markdown file with TL;DR, key takeaways, walkthrough, and notable quotes.
 
 See [CLAUDE.md](./CLAUDE.md) for architecture, design decisions, and known gotchas.
 
