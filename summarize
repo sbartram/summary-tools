@@ -17,6 +17,11 @@ Usage:
     python summarize.py <url> --model claude-haiku-4-5-20251001
     python summarize.py --transcript-file path/to/transcript.txt [--title "..."] [--source "..."]
     python summarize.py --article https://example.com/post
+
+Bash completion:
+    source <(./summarize --completion)            # current shell
+    ./summarize --completion > ~/.summarize-completion.bash && \
+        echo 'source ~/.summarize-completion.bash' >> ~/.bashrc
 """
 
 from __future__ import annotations
@@ -43,6 +48,7 @@ OVERLAP_MINUTES = 1            # overlap between chunks
 TIMESTAMP_EVERY_S = 30         # how often to inject [timestamp] markers
 ARTICLE_WORD_THRESHOLD = 6000  # below this, articles go single-pass
 ARTICLE_MAX_CHUNK_WORDS = 2500 # if H2-split leaves a chunk bigger than this, fall back to H2+H3
+API_MAX_RETRIES = 5            # SDK exponential backoff on 408/409/429/5xx/connection errors
 
 
 # ---------- URL & metadata ----------
@@ -572,6 +578,46 @@ def write_summary(summary: str, meta: dict, out_dir: Path) -> Path:
     return path
 
 
+# ---------- Shell completion ----------
+
+BASH_COMPLETION = r"""# bash completion for summarize
+# install: source <(./summarize --completion)
+_summarize_complete() {
+    local cur prev opts models
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="--batch --transcript-file --article --title --source --out-dir --model --completion --help"
+    models="claude-opus-4-7 claude-sonnet-4-6 claude-haiku-4-5-20251001"
+
+    case "$prev" in
+        --batch|--transcript-file)
+            COMPREPLY=( $(compgen -f -- "$cur") )
+            return 0
+            ;;
+        --out-dir)
+            COMPREPLY=( $(compgen -d -- "$cur") )
+            return 0
+            ;;
+        --model)
+            COMPREPLY=( $(compgen -W "$models" -- "$cur") )
+            return 0
+            ;;
+        --title|--source|--article)
+            return 0
+            ;;
+    esac
+
+    if [[ "$cur" == -* ]]; then
+        COMPREPLY=( $(compgen -W "$opts" -- "$cur") )
+        return 0
+    fi
+}
+complete -F _summarize_complete summarize
+complete -F _summarize_complete ./summarize
+"""
+
+
 # ---------- Pipeline ----------
 
 def process_url(url: str, client: Anthropic, model: str, out_dir: Path) -> Path | None:
@@ -660,6 +706,10 @@ def process_article(
 
 
 def main() -> None:
+    if "--completion" in sys.argv[1:]:
+        print(BASH_COMPLETION)
+        return
+
     parser = argparse.ArgumentParser(description="Summarize YouTube videos and web articles with Claude.")
     src = parser.add_mutually_exclusive_group(required=True)
     src.add_argument("url", nargs="?", help="YouTube URL")
@@ -670,13 +720,14 @@ def main() -> None:
     parser.add_argument("--source", help="Optional source/URL to cite in the output header (transcript-file mode)")
     parser.add_argument("--out-dir", default="./summaries", help="Output dir (default: ./summaries)")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Claude model (default: {DEFAULT_MODEL})")
+    parser.add_argument("--completion", action="store_true", help="Print bash completion script and exit")
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("error: ANTHROPIC_API_KEY not set", file=sys.stderr)
         sys.exit(1)
 
-    client = Anthropic()
+    client = Anthropic(max_retries=API_MAX_RETRIES)
     out_dir = Path(args.out_dir)
 
     if args.batch:
