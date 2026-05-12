@@ -63,7 +63,7 @@ Roughly $0.05–0.15 per hour of video on Sonnet. A 1-hour video typically runs 
 - **`youtube-transcript-api` v0 vs v1.** The fetch function tries `YouTubeTranscriptApi().fetch()` (v1.x) and falls back to `YouTubeTranscriptApi.get_transcript()` (v0.x). If you hit weird errors, `pip install -U youtube-transcript-api`.
 - **Cloud IP blocking.** YouTube blocks transcript requests from many VPS providers. Works fine from a home connection. From a cloud host you'd need to configure cookies via `yt-dlp`.
 - **No transcript ≠ no video.** Live streams, age-restricted content, and some music videos return `None` from `fetch_transcript`. The script logs and skips.
-- **X.com / Twitter articles** fall outside `--article` mode. `trafilatura` can't render the JS-only SPA, and plain HTTP fetchers get a 402 from X's gateway. Playwright (or yt-dlp's social handlers) would be the path if X support is ever needed.
+- **X.com / Twitter articles** fall outside `--article` mode. `trafilatura` can't render the JS-only SPA, plain HTTP fetchers get a 402 from X's gateway, and yt-dlp errors with `Unsupported URL` on `/article/` long-form posts (it handles regular tweets fine). Playwright is the only working path so far.
 
 ## Possible future work
 
