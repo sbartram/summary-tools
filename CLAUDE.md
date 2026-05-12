@@ -17,6 +17,7 @@ python summarize <url> --out-dir ./notes        # custom output directory
 python summarize <url> --model claude-haiku-4-5-20251001
 python summarize --transcript-file FILE [--title "..."] [--source "..."]
 python summarize --article <url>                # web article (e.g. blog post)
+python summarize --completion                   # emit bash completion script
 ```
 
 Output: `./summaries/YYYY-MM-DD_<slug>.md`
