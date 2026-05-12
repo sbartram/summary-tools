@@ -1,0 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "summary-tools"
+version = "0.1.0"
+description = "Summarize YouTube videos and web articles with Claude."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+dependencies = [
+    "anthropic",
+    "youtube-transcript-api",
+    "yt-dlp",
+    "trafilatura",
+]
+
+[project.optional-dependencies]
+transcribe = ["pywhispercpp"]
+
+[project.scripts]
+summarize = "summarize:main"
+
+[tool.hatch.build.targets.wheel]
+only-include = ["summarize.py"]

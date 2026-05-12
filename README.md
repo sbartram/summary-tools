@@ -5,7 +5,28 @@ Pulls captions (or extracts article body), chunks the text, and writes a Markdow
 
 See [CLAUDE.md](./CLAUDE.md) for architecture, design decisions, and known gotchas.
 
-## Setup
+## Install globally (recommended)
+
+If you just want the `summarize` CLI on your `$PATH` from any directory, use [uv](https://docs.astral.sh/uv/) or [pipx](https://pipx.pypa.io/):
+
+```bash
+uv tool install .                 # or: pipx install .
+summarize <url>                   # now works from anywhere
+```
+
+To include the `run_transcribe.py` companion (pulls in `pywhispercpp`, a C extension):
+
+```bash
+uv tool install '.[transcribe]'
+```
+
+Update later with `uv tool upgrade summary-tools`; uninstall with `uv tool uninstall summary-tools`.
+
+You still need `ANTHROPIC_API_KEY` exported in your shell (see step 5 below).
+
+## Dev setup (editable venv)
+
+Use this if you want to hack on the code itself rather than just run it.
 
 ### 1. Download the Whisper model
 
@@ -50,13 +71,15 @@ direnv allow
 
 ## Usage
 
+After `uv tool install` just use `summarize`. In a dev venv, use `python summarize.py`.
+
 ```bash
-python summarize <url>                          # single video
-python summarize --batch urls.txt               # one URL per line; '#' lines ignored
-python summarize <url> --out-dir ./notes        # custom output directory
-python summarize <url> --model claude-haiku-4-5-20251001
-python summarize --transcript-file FILE [--title "..."] [--source "..."]
-python summarize --article <url>                # web article (e.g. blog post)
+summarize <url>                          # single video
+summarize --batch urls.txt               # one URL per line; '#' lines ignored
+summarize <url> --out-dir ./notes        # custom output directory
+summarize <url> --model claude-haiku-4-5-20251001
+summarize --transcript-file FILE [--title "..."] [--source "..."]
+summarize --article <url>                # web article (e.g. blog post)
 ```
 
 Output lands in `./summaries/YYYY-MM-DD_<slug>.md`.

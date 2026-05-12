@@ -18,9 +18,9 @@ Usage:
     python summarize.py --transcript-file path/to/transcript.txt [--title "..."] [--source "..."]
     python summarize.py --article https://example.com/post
 
-Bash completion:
-    source <(./summarize --completion)            # current shell
-    ./summarize --completion > ~/.summarize-completion.bash && \
+Bash completion (post-install):
+    source <(summarize --completion)             # current shell
+    summarize --completion > ~/.summarize-completion.bash && \
         echo 'source ~/.summarize-completion.bash' >> ~/.bashrc
 """
 

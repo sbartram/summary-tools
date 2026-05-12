@@ -5,3 +5,6 @@ summaries/
 .claude/settings.local.json
 .venv/
 .envrc
+dist/
+build/
+*.egg-info/

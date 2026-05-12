@@ -4,20 +4,25 @@ A Python CLI that pulls YouTube transcripts or web article bodies and summarizes
 
 ## Setup
 
-See [README.md](./README.md). Dependencies live in `requirements.txt`; the
-`pywhispercpp` entry there is for `run_transcribe.py` only and can be skipped
-if you're not running the cloud-sandbox transcriber locally.
+See [README.md](./README.md). Two install paths:
+
+- **Global CLI**: `uv tool install .` (or `pipx install .`) → `summarize` on `$PATH` from any directory. Driven by `pyproject.toml`.
+- **Dev venv**: `pip install -r requirements.txt` in a `.venv`, then `python summarize.py <url>`.
+
+`pywhispercpp` is for `run_transcribe.py` only. It's an optional extra in `pyproject.toml` (`uv tool install '.[transcribe]'`) and still listed in `requirements.txt` for the venv flow.
 
 ## Usage
 
+After install, invoke `summarize` from anywhere. During dev, `python summarize.py …` works the same.
+
 ```bash
-python summarize <url>                          # single video
-python summarize --batch urls.txt               # one URL per line; '#' lines ignored
-python summarize <url> --out-dir ./notes        # custom output directory
-python summarize <url> --model claude-haiku-4-5-20251001
-python summarize --transcript-file FILE [--title "..."] [--source "..."]
-python summarize --article <url>                # web article (e.g. blog post)
-python summarize --completion                   # emit bash completion script
+summarize <url>                          # single video
+summarize --batch urls.txt               # one URL per line; '#' lines ignored
+summarize <url> --out-dir ./notes        # custom output directory
+summarize <url> --model claude-haiku-4-5-20251001
+summarize --transcript-file FILE [--title "..."] [--source "..."]
+summarize --article <url>                # web article (e.g. blog post)
+summarize --completion                   # emit bash completion script
 ```
 
 Output: `./summaries/YYYY-MM-DD_<slug>.md`
