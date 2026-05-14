@@ -55,7 +55,7 @@ API_MAX_RETRIES = 5            # SDK exponential backoff on 408/409/429/5xx/conn
 
 def extract_video_id(url: str) -> str:
     patterns = [
-        r"(?:v=|/shorts/|/embed/)([0-9A-Za-z_-]{11})",
+        r"(?:v=|/shorts/|/embed/|/live/)([0-9A-Za-z_-]{11})",
         r"youtu\.be/([0-9A-Za-z_-]{11})",
     ]
     for p in patterns:
