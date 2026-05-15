@@ -22,6 +22,15 @@ uv tool install '.[transcribe]'
 
 Update later with `uv tool upgrade summary-tools`; uninstall with `uv tool uninstall summary-tools`.
 
+To fetch JS-rendered articles (X.com long-form, Morningstar Q&A, similar) via Playwright:
+
+```bash
+uv tool install '.[playwright]'
+playwright install chromium       # one-time, ~150 MB Chromium download
+```
+
+Then either run `summarize --article <url> --playwright` to force, or let auto-fallback trigger when the default fetcher fails.
+
 You still need `ANTHROPIC_API_KEY` exported in your shell (see step 5 below).
 
 ## Dev setup (editable venv)
@@ -80,6 +89,7 @@ summarize <url> --out-dir ./notes        # custom output directory
 summarize <url> --model claude-haiku-4-5-20251001
 summarize --transcript-file FILE [--title "..."] [--source "..."]
 summarize --article <url>                # web article (e.g. blog post)
+summarize --article <url> --playwright   # force Chromium (for JS-rendered sites)
 ```
 
 Output lands in `./summaries/YYYY-MM-DD_<slug>.md`.
