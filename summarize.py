@@ -501,6 +501,7 @@ Article: {title}
 Site: {site}
 Author: {author}
 Published: {published}
+Summarized: {summarized}
 URL: {url}
 
 Section summaries:
@@ -515,6 +516,7 @@ Produce a single Markdown document EXACTLY in this structure:
 **Site:** {site}
 **Author:** {author}
 **Published:** {published}
+**Summarized:** {summarized}
 **Source:** {url}
 
 ## TL;DR
@@ -538,6 +540,7 @@ Article: {title}
 Site: {site}
 Author: {author}
 Published: {published}
+Summarized: {summarized}
 URL: {url}
 
 Article text (Markdown):
@@ -552,6 +555,7 @@ Produce a Markdown document EXACTLY in this structure:
 **Site:** {site}
 **Author:** {author}
 **Published:** {published}
+**Summarized:** {summarized}
 **Source:** {url}
 
 ## TL;DR
@@ -622,6 +626,7 @@ def summarize_article(
         "site": meta.get("site") or "—",
         "author": meta.get("author") or "—",
         "published": meta.get("published") or "—",
+        "summarized": datetime.now().strftime("%Y-%m-%d"),
         "url": meta["url"],
     }
     if len(chunks) == 1:
