@@ -204,6 +204,47 @@ def fetch_article(url: str) -> tuple[dict, str]:
     return _meta_from_trafilatura(extract_metadata(downloaded), url, text), text
 
 
+def fetch_article_playwright(url: str) -> tuple[dict, str]:
+    """Render a JS-heavy article with headless Chromium and extract content.
+
+    Hands the rendered HTML to trafilatura so the same boilerplate stripping,
+    Markdown conversion, and metadata extraction used by fetch_article apply.
+    """
+    try:
+        from playwright.sync_api import sync_playwright
+    except ImportError as e:
+        raise RuntimeError(
+            "playwright not installed. "
+            "Run: uv tool install '.[playwright]' && playwright install chromium"
+        ) from e
+    from trafilatura import extract, extract_metadata
+
+    with sync_playwright() as p:
+        try:
+            browser = p.chromium.launch(headless=True)
+        except Exception as e:
+            raise RuntimeError(
+                f"failed to launch Chromium: {e}. Run: playwright install chromium"
+            ) from e
+        try:
+            page = browser.new_page(user_agent=_BROWSER_UA)
+            page.goto(url, wait_until="networkidle")
+            html = page.content()
+        finally:
+            browser.close()
+
+    text = extract(
+        html,
+        output_format="markdown",
+        include_comments=False,
+        include_tables=True,
+    )
+    if not text:
+        raise RuntimeError(f"no article content extracted from {url} (after Playwright)")
+
+    return _meta_from_trafilatura(extract_metadata(html), url, text), text
+
+
 def _build_chunks(text: str, splits: list[tuple]) -> list[dict]:
     chunks: list[dict] = []
     if splits[0][0] > 0:
