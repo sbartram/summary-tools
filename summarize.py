@@ -413,6 +413,8 @@ SYNTHESIS_PROMPT = """You are creating a final summary of a YouTube video by syn
 Video: {title}
 Channel: {channel}
 Duration: {duration}
+Published: {published}
+Summarized: {summarized}
 URL: {url}
 
 Section summaries:
@@ -426,6 +428,8 @@ Produce a single Markdown document EXACTLY in this structure:
 
 **Channel:** {channel}  
 **Duration:** {duration}  
+**Published:** {published}  
+**Summarized:** {summarized}  
 **Source:** {url}
 
 ## TL;DR
@@ -448,6 +452,8 @@ SINGLE_PASS_PROMPT = """Summarize this YouTube video transcript.
 Video: {title}
 Channel: {channel}
 Duration: {duration}
+Published: {published}
+Summarized: {summarized}
 URL: {url}
 
 Transcript (with [timestamp] markers):
@@ -461,6 +467,8 @@ Produce a Markdown document EXACTLY in this structure:
 
 **Channel:** {channel}  
 **Duration:** {duration}  
+**Published:** {published}  
+**Summarized:** {summarized}  
 **Source:** {url}
 
 ## TL;DR
@@ -586,6 +594,8 @@ def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> 
             title=meta["title"],
             channel=meta["channel"],
             duration=fmt_ts(meta["duration"]),
+            published=meta.get("published") or "—",
+            summarized=datetime.now().strftime("%Y-%m-%d"),
             url=meta["url"],
             text=chunks[0]["text"],
         )
@@ -612,6 +622,8 @@ def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> 
         title=meta["title"],
         channel=meta["channel"],
         duration=fmt_ts(meta["duration"]),
+        published=meta.get("published") or "—",
+        summarized=datetime.now().strftime("%Y-%m-%d"),
         url=meta["url"],
         sections="\n\n---\n\n".join(section_summaries),
     )
@@ -771,6 +783,7 @@ def process_transcript_file(
         "title": title or title_from_filename(path),
         "channel": "Local transcript",
         "duration": duration,
+        "published": None,
         "url": source or "",
     }
     print(f"  · title: {meta['title']}", file=sys.stderr)
