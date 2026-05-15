@@ -154,6 +154,19 @@ _BROWSER_UA = (
 )
 
 
+def _meta_from_trafilatura(md, url: str, text: str) -> dict:
+    """Build the article meta dict from a trafilatura metadata object."""
+    title = (getattr(md, "title", None) if md else None) or "Untitled"
+    return {
+        "title": title,
+        "author": getattr(md, "author", None) if md else None,
+        "site": getattr(md, "sitename", None) if md else None,
+        "published": getattr(md, "date", None) if md else None,
+        "url": url,
+        "word_count": len(text.split()),
+    }
+
+
 def fetch_article(url: str) -> tuple[dict, str]:
     """Download a web article and return (meta, markdown_text).
 
@@ -188,21 +201,7 @@ def fetch_article(url: str) -> tuple[dict, str]:
     if not text:
         raise RuntimeError(f"no article content extracted from {url}")
 
-    md = extract_metadata(downloaded)
-    title = (getattr(md, "title", None) if md else None) or "Untitled"
-    author = getattr(md, "author", None) if md else None
-    site = getattr(md, "sitename", None) if md else None
-    published = getattr(md, "date", None) if md else None
-
-    meta = {
-        "title": title,
-        "author": author,
-        "site": site,
-        "published": published,
-        "url": url,
-        "word_count": len(text.split()),
-    }
-    return meta, text
+    return _meta_from_trafilatura(extract_metadata(downloaded), url, text), text
 
 
 def _build_chunks(text: str, splits: list[tuple]) -> list[dict]:
