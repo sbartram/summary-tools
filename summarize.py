@@ -668,7 +668,7 @@ _summarize_complete() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="--batch --transcript-file --article --title --source --out-dir --model --completion --help"
+    opts="--batch --transcript-file --article --playwright --title --source --out-dir --model --completion --help"
     models="claude-opus-4-7 claude-sonnet-4-6 claude-haiku-4-5-20251001"
 
     case "$prev" in
@@ -764,12 +764,13 @@ def process_transcript_file(
 
 
 def process_article(
-    url: str, client: Anthropic, model: str, out_dir: Path
+    url: str, client: Anthropic, model: str, out_dir: Path,
+    *, force_playwright: bool = False,
 ) -> Path | None:
     print(f"\n→ {url}", file=sys.stderr)
     print("  · fetching article", file=sys.stderr)
     try:
-        meta, text = fetch_article(url)
+        meta, text = fetch_article(url, force_playwright=force_playwright)
     except RuntimeError as e:
         print(f"  ✗ {e}", file=sys.stderr)
         return None
@@ -802,6 +803,11 @@ def main() -> None:
     parser.add_argument("--out-dir", default="./summaries", help="Output dir (default: ./summaries)")
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Claude model (default: {DEFAULT_MODEL})")
     parser.add_argument("--completion", action="store_true", help="Print bash completion script and exit")
+    parser.add_argument(
+        "--playwright",
+        action="store_true",
+        help="Force Playwright (Chromium) for article fetch (default: auto-fallback on failure; only meaningful with --article)",
+    )
     args = parser.parse_args()
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
@@ -826,7 +832,7 @@ def main() -> None:
             title=args.title, source=args.source,
         )
     elif args.article:
-        process_article(args.article, client, args.model, out_dir)
+        process_article(args.article, client, args.model, out_dir, force_playwright=args.playwright)
     else:
         process_url(args.url, client, args.model, out_dir)
 
