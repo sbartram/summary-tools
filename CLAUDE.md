@@ -29,7 +29,7 @@ Output: `./summaries/YYYY-MM-DD_<slug>.md`
 
 ## Architecture
 
-Five replaceable stages, all in `yt_summarize.py`:
+Five replaceable stages, all in `summarize.py`:
 
 1. **`fetch_metadata(url)`** — `yt-dlp` for title/channel/duration without downloading.
 2. **`fetch_transcript(video_id)`** — `youtube-transcript-api`, returns `[{text, start, duration}]` or `None`.
@@ -59,6 +59,13 @@ Five replaceable stages, all in `yt_summarize.py`:
 ## Cost estimate
 
 Roughly $0.05–0.15 per hour of video on Sonnet. A 1-hour video typically runs as 4 chunk calls + 1 synthesis call = 5 API calls.
+
+## Working in this repo
+
+- **No test framework.** Manual smoke verification is the bar — run `summarize --article <url>` end-to-end rather than adding pytest or a `tests/` directory.
+- **`which summarize` matters.** With direnv loaded, `summarize` on PATH resolves to `.venv/bin/summarize` (the dev install), NOT the `uv tool install` env. `uv tool install --force` won't affect the dev binary. Check before debugging "why isn't my code change picked up."
+- **`.venv` has no `pip`.** Add packages with `VIRTUAL_ENV=.venv uv pip install <pkg>`, or rebuild the venv from `requirements.txt`.
+- **Commit style.** Lowercase imperative, no `feat:` prefix (match `git log`). Add `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` when Claude assists.
 
 ## Known gotchas
 
