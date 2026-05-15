@@ -18,6 +18,7 @@ dependencies = [
 
 [project.optional-dependencies]
 transcribe = ["pywhispercpp"]
+playwright = ["playwright"]
 
 [project.scripts]
 summarize = "summarize:main"
