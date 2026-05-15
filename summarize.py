@@ -146,6 +146,13 @@ def title_from_filename(path: Path) -> str:
 # Match Markdown ATX headings of level 1-3 at line start.
 _ARTICLE_HEADING = re.compile(r"^(#{1,3})\s+(.+?)\s*$", re.MULTILINE)
 
+# Some sites (e.g. Morningstar) return HTTP 202 bot-challenge responses to
+# trafilatura's default UA but serve normally to a browser-shaped client.
+_BROWSER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+    "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
+)
+
 
 def fetch_article(url: str) -> tuple[dict, str]:
     """Download a web article and return (meta, markdown_text).
@@ -155,12 +162,22 @@ def fetch_article(url: str) -> tuple[dict, str]:
     """
     try:
         from trafilatura import fetch_url, extract, extract_metadata
+        from trafilatura.downloads import fetch_response
+        from trafilatura.settings import use_config
     except ImportError as e:
         raise RuntimeError("trafilatura not installed. Run: pip install trafilatura") from e
 
-    downloaded = fetch_url(url)
+    cfg = use_config()
+    cfg.set("DEFAULT", "USER_AGENTS", _BROWSER_UA)
+
+    downloaded = fetch_url(url, config=cfg)
     if downloaded is None:
-        raise RuntimeError(f"failed to fetch {url}")
+        # fetch_url discards the HTTP status; refetch once for a useful error.
+        resp = fetch_response(url, config=cfg)
+        if resp is None:
+            raise RuntimeError(f"failed to fetch {url}: no response (network error or timeout)")
+        hint = " (bot challenge — site rejected automated request)" if resp.status == 202 else ""
+        raise RuntimeError(f"failed to fetch {url}: HTTP {resp.status}{hint}")
 
     text = extract(
         downloaded,
