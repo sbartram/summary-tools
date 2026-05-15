@@ -810,6 +810,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    if args.playwright and not args.article:
+        parser.error("--playwright requires --article")
+
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("error: ANTHROPIC_API_KEY not set", file=sys.stderr)
         sys.exit(1)
