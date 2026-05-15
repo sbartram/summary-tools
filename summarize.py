@@ -73,6 +73,7 @@ def fetch_metadata(url: str) -> dict:
         "title": info.get("title", "Untitled"),
         "channel": info.get("uploader", "Unknown"),
         "duration": int(info.get("duration") or 0),
+        "published": _normalize_publish_date(info.get("upload_date")),
         "url": url,
     }
 
@@ -648,6 +649,17 @@ def summarize_article(
 
 
 # ---------- Output ----------
+
+def _normalize_publish_date(s: str | None) -> str | None:
+    """Parse a date string and return canonical YYYY-MM-DD, or None if unparseable.
+
+    Handles trafilatura's ISO-like 'YYYY-MM-DD' and yt-dlp's 'YYYYMMDD' shapes.
+    """
+    if not s:
+        return None
+    m = re.match(r"^(\d{4})-?(\d{2})-?(\d{2})", s)
+    return f"{m.group(1)}-{m.group(2)}-{m.group(3)}" if m else None
+
 
 def slugify(text: str, max_len: int = 60) -> str:
     s = re.sub(r"[^\w\s-]", "", text.lower())
