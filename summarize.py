@@ -669,7 +669,7 @@ def slugify(text: str, max_len: int = 60) -> str:
 
 def write_summary(summary: str, meta: dict, out_dir: Path) -> Path:
     out_dir.mkdir(parents=True, exist_ok=True)
-    date_str = datetime.now().strftime("%Y-%m-%d")
+    date_str = _normalize_publish_date(meta.get("published")) or datetime.now().strftime("%Y-%m-%d")
     path = out_dir / f"{date_str}_{slugify(meta['title'])}.md"
     path.write_text(summary, encoding="utf-8")
     return path
