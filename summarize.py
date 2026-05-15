@@ -252,7 +252,11 @@ def fetch_article_playwright(url: str) -> tuple[dict, str]:
             ) from e
         try:
             page = browser.new_page(user_agent=_BROWSER_UA)
-            page.goto(url, wait_until="networkidle")
+            # Sites with continuous long-polling (X.com, ad-heavy news) never
+            # reach networkidle. DOMContentLoaded + a brief settle covers them
+            # without losing much on slower-rendering sites.
+            page.goto(url, wait_until="domcontentloaded")
+            page.wait_for_timeout(2000)
             html = page.content()
         finally:
             browser.close()
