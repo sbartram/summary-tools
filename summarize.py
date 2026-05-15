@@ -167,8 +167,32 @@ def _meta_from_trafilatura(md, url: str, text: str) -> dict:
     }
 
 
-def fetch_article(url: str) -> tuple[dict, str]:
-    """Download a web article and return (meta, markdown_text).
+def fetch_article(url: str, *, force_playwright: bool = False) -> tuple[dict, str]:
+    """Fetch a web article, returning (meta, markdown_text).
+
+    Tries trafilatura first (cheap HTTP). On any RuntimeError, auto-falls
+    back to Playwright for JS-rendered sites. Pass force_playwright=True
+    to skip the trafilatura attempt and go straight to Chromium.
+    """
+    if force_playwright:
+        return fetch_article_playwright(url)
+
+    try:
+        return _fetch_article_trafilatura(url)
+    except RuntimeError as trafi_err:
+        try:
+            return fetch_article_playwright(url)
+        except RuntimeError as pw_err:
+            if "playwright not installed" in str(pw_err):
+                raise RuntimeError(
+                    f"{trafi_err} (install '[playwright]' extra to enable "
+                    f"fallback for JS-rendered sites)"
+                ) from trafi_err
+            raise
+
+
+def _fetch_article_trafilatura(url: str) -> tuple[dict, str]:
+    """Download a web article via trafilatura and return (meta, markdown_text).
 
     Uses trafilatura for boilerplate-free body extraction. Output is
     Markdown so chunk_article can split on '##'/'###' headings directly.
