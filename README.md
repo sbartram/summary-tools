@@ -93,3 +93,23 @@ summarize --article <url> --playwright   # force Chromium (for JS-rendered sites
 ```
 
 Output lands in `./summaries/YYYY-MM-DD_<slug>.md`.
+
+## Web service (local REST job API)
+
+Run the pipelines behind an HTTP job API (for a CLI client or browser extension):
+
+```bash
+uv tool install '.[server]'      # or: VIRTUAL_ENV=.venv uv pip install fastapi 'uvicorn[standard]'
+summarize-server                 # binds 127.0.0.1:8723; needs ANTHROPIC_API_KEY
+```
+
+Submit a job, then poll for the result:
+
+```bash
+curl -X POST localhost:8723/jobs/article -H 'Content-Type: application/json' -d '{"url":"https://example.com/post"}'
+# -> {"id":"j_ab12cd34","kind":"article","status":"queued",...}
+curl localhost:8723/jobs/j_ab12cd34        # status, progress log, and result.markdown
+```
+
+Endpoints: `POST /jobs/youtube`, `POST /jobs/article`, `GET /jobs/{id}`, `GET /jobs`, `GET /healthz`. Interactive docs at `/docs`.
+Config via env: `SUMMARIZE_HOST`, `SUMMARIZE_PORT`, `SUMMARIZE_WORKERS`, `SUMMARIZE_OUT_DIR`, `SUMMARIZE_MODEL` (or the matching `summarize-server` flags).

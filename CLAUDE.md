@@ -47,6 +47,8 @@ Five replaceable stages, all in `summarize.py`:
 
 `fetch_article` is a dispatcher: by default it tries trafilatura (cheap HTTP), then auto-falls back to `fetch_article_playwright()` on any `RuntimeError`. Passing `--playwright` (CLI) or `force_playwright=True` (function call) skips the trafilatura attempt. The Playwright path renders the page in headless Chromium, hands `page.content()` to the same `trafilatura.extract()` used on the cheap path, so meta-dict shape and Markdown structure are identical across both fetchers — `chunk_article` and downstream stages never know which path ran.
 
+**Web service** (`server.py`, `--server` extra). A FastAPI app that imports the pipeline functions and runs them as background jobs on a `ThreadPoolExecutor` (work is I/O-bound). `POST /jobs/{youtube,article}` enqueue and return a `job_id`; `GET /jobs/{id}` returns status + a progress log + `result.markdown`. Localhost-only, single-user, no auth. The pipeline's `process_*`/`summarize*` functions take an injectable `log` callback (default = stderr, preserving CLI output) and `process_*` return a `SummaryResult(path, markdown, meta)`. Transcript-file mode stays CLI-only. See `docs/superpowers/specs/2026-05-23-web-service-design.md`.
+
 ## Design decisions
 
 - **Captions only.** No Whisper fallback. Most YouTube content has auto-captions, and skipping Whisper keeps deps light. Add it later if a real need shows up.
