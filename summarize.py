@@ -602,7 +602,10 @@ def call_claude(client: Anthropic, model: str, prompt: str, max_tokens: int) -> 
     return resp.content[0].text
 
 
-def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> str:
+def summarize(
+    chunks: list[dict], meta: dict, client: Anthropic, model: str,
+    *, log=_default_log,
+) -> str:
     if len(chunks) == 1:
         prompt = SINGLE_PASS_PROMPT.format(
             title=meta["title"],
@@ -617,10 +620,9 @@ def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> 
 
     section_summaries = []
     for i, ch in enumerate(chunks, 1):
-        print(
+        log(
             f"  · section {i}/{len(chunks)} "
-            f"({fmt_ts(ch['start'])}–{fmt_ts(ch['end'])})",
-            file=sys.stderr,
+            f"({fmt_ts(ch['start'])}–{fmt_ts(ch['end'])})"
         )
         prompt = CHUNK_PROMPT.format(
             title=meta["title"],
@@ -631,7 +633,7 @@ def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> 
         )
         section_summaries.append(call_claude(client, model, prompt, max_tokens=1500))
 
-    print("  · synthesizing", file=sys.stderr)
+    log("  · synthesizing")
     prompt = SYNTHESIS_PROMPT.format(
         title=meta["title"],
         channel=meta["channel"],
@@ -645,7 +647,8 @@ def summarize(chunks: list[dict], meta: dict, client: Anthropic, model: str) -> 
 
 
 def summarize_article(
-    chunks: list[dict], meta: dict, client: Anthropic, model: str
+    chunks: list[dict], meta: dict, client: Anthropic, model: str,
+    *, log=_default_log,
 ) -> str:
     fields = {
         "title": meta["title"],
@@ -662,7 +665,7 @@ def summarize_article(
     section_summaries = []
     for i, ch in enumerate(chunks, 1):
         label = ch["title"] or "(intro)"
-        print(f"  · section {i}/{len(chunks)}: {label}", file=sys.stderr)
+        log(f"  · section {i}/{len(chunks)}: {label}")
         prompt = ARTICLE_CHUNK_PROMPT.format(
             title=fields["title"],
             site=fields["site"],
@@ -671,7 +674,7 @@ def summarize_article(
         )
         section_summaries.append(call_claude(client, model, prompt, max_tokens=1500))
 
-    print("  · synthesizing", file=sys.stderr)
+    log("  · synthesizing")
     prompt = ARTICLE_SYNTHESIS_PROMPT.format(
         sections="\n\n---\n\n".join(section_summaries),
         **fields,
