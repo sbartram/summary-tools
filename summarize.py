@@ -751,34 +751,34 @@ complete -F _summarize_complete ./summarize
 
 # ---------- Pipeline ----------
 
-def process_url(url: str, client: Anthropic, model: str, out_dir: Path) -> Path | None:
-    print(f"\n→ {url}", file=sys.stderr)
+def process_url(
+    url: str, client: Anthropic, model: str, out_dir: Path,
+    *, log=_default_log,
+) -> SummaryResult | None:
+    log(f"\n→ {url}")
     try:
         video_id = extract_video_id(url)
     except ValueError as e:
-        print(f"  ✗ {e}", file=sys.stderr)
+        log(f"  ✗ {e}")
         return None
 
-    print("  · fetching metadata", file=sys.stderr)
+    log("  · fetching metadata")
     meta = fetch_metadata(url)
-    print(f"  · title: {meta['title']}", file=sys.stderr)
+    log(f"  · title: {meta['title']}")
 
-    print("  · fetching transcript", file=sys.stderr)
+    log("  · fetching transcript")
     segments = fetch_transcript(video_id)
     if not segments:
-        print("  ✗ no transcript available (captions disabled or absent)", file=sys.stderr)
+        log("  ✗ no transcript available (captions disabled or absent)")
         return None
 
     chunks = chunk_transcript(segments)
-    print(
-        f"  · {len(segments)} segments → {len(chunks)} chunk(s)",
-        file=sys.stderr,
-    )
+    log(f"  · {len(segments)} segments → {len(chunks)} chunk(s)")
 
-    summary = summarize(chunks, meta, client, model)
+    summary = summarize(chunks, meta, client, model, log=log)
     path = write_summary(summary, meta, out_dir)
-    print(f"  ✓ wrote {path}", file=sys.stderr)
-    return path
+    log(f"  ✓ wrote {path}")
+    return SummaryResult(path=path, markdown=summary, meta=meta)
 
 
 def process_transcript_file(
@@ -788,11 +788,12 @@ def process_transcript_file(
     out_dir: Path,
     title: str | None,
     source: str | None,
-) -> Path | None:
-    print(f"\n→ {path}", file=sys.stderr)
+    *, log=_default_log,
+) -> SummaryResult | None:
+    log(f"\n→ {path}")
     segments = parse_transcript_file(path)
     if not segments:
-        print("  ✗ no segments parsed (expected '[MM:SS --> MM:SS] text' lines)", file=sys.stderr)
+        log("  ✗ no segments parsed (expected '[MM:SS --> MM:SS] text' lines)")
         return None
 
     duration = int(segments[-1]["start"] + segments[-1]["duration"])
@@ -803,39 +804,39 @@ def process_transcript_file(
         "published": None,
         "url": source or "",
     }
-    print(f"  · title: {meta['title']}", file=sys.stderr)
+    log(f"  · title: {meta['title']}")
 
     chunks = chunk_transcript(segments)
-    print(f"  · {len(segments)} segments → {len(chunks)} chunk(s)", file=sys.stderr)
+    log(f"  · {len(segments)} segments → {len(chunks)} chunk(s)")
 
-    summary = summarize(chunks, meta, client, model)
+    summary = summarize(chunks, meta, client, model, log=log)
     path_out = write_summary(summary, meta, out_dir)
-    print(f"  ✓ wrote {path_out}", file=sys.stderr)
-    return path_out
+    log(f"  ✓ wrote {path_out}")
+    return SummaryResult(path=path_out, markdown=summary, meta=meta)
 
 
 def process_article(
     url: str, client: Anthropic, model: str, out_dir: Path,
-    *, force_playwright: bool = False,
-) -> Path | None:
-    print(f"\n→ {url}", file=sys.stderr)
-    print("  · fetching article", file=sys.stderr)
+    *, force_playwright: bool = False, log=_default_log,
+) -> SummaryResult | None:
+    log(f"\n→ {url}")
+    log("  · fetching article")
     try:
         meta, text = fetch_article(url, force_playwright=force_playwright)
     except RuntimeError as e:
-        print(f"  ✗ {e}", file=sys.stderr)
+        log(f"  ✗ {e}")
         return None
 
-    print(f"  · title: {meta['title']}", file=sys.stderr)
-    print(f"  · {meta['word_count']} words", file=sys.stderr)
+    log(f"  · title: {meta['title']}")
+    log(f"  · {meta['word_count']} words")
 
     chunks = chunk_article(text)
-    print(f"  · {len(chunks)} chunk(s)", file=sys.stderr)
+    log(f"  · {len(chunks)} chunk(s)")
 
-    summary = summarize_article(chunks, meta, client, model)
+    summary = summarize_article(chunks, meta, client, model, log=log)
     path = write_summary(summary, meta, out_dir)
-    print(f"  ✓ wrote {path}", file=sys.stderr)
-    return path
+    log(f"  ✓ wrote {path}")
+    return SummaryResult(path=path, markdown=summary, meta=meta)
 
 
 def main() -> None:
