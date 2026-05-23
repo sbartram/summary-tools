@@ -19,9 +19,11 @@ dependencies = [
 [project.optional-dependencies]
 transcribe = ["pywhispercpp"]
 playwright = ["playwright"]
+server = ["fastapi", "uvicorn[standard]"]
 
 [project.scripts]
 summarize = "summarize:main"
+summarize-server = "server:main"
 
 [tool.hatch.build.targets.wheel]
-only-include = ["summarize.py"]
+only-include = ["summarize.py", "server.py"]

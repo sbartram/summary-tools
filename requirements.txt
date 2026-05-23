@@ -4,3 +4,5 @@ yt-dlp
 trafilatura
 pywhispercpp
 playwright
+fastapi
+uvicorn[standard]
