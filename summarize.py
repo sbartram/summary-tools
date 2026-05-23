@@ -30,6 +30,7 @@ import argparse
 import os
 import re
 import sys
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
@@ -49,6 +50,19 @@ TIMESTAMP_EVERY_S = 30         # how often to inject [timestamp] markers
 ARTICLE_WORD_THRESHOLD = 6000  # below this, articles go single-pass
 ARTICLE_MAX_CHUNK_WORDS = 2500 # if H2-split leaves a chunk bigger than this, fall back to H2+H3
 API_MAX_RETRIES = 5            # SDK exponential backoff on 408/409/429/5xx/connection errors
+
+
+def _default_log(msg: str) -> None:
+    """Default progress sink: print to stderr exactly as the CLI always has."""
+    print(msg, file=sys.stderr)
+
+
+@dataclass
+class SummaryResult:
+    """Structured result of a process_* pipeline run."""
+    path: Path
+    markdown: str
+    meta: dict
 
 
 # ---------- URL & metadata ----------
