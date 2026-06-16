@@ -129,8 +129,11 @@ def _job_to_dict(job: Job, *, include_markdown: bool = True) -> dict:
     result = None
     if job.result is not None:
         result = {"path": str(job.result.path), "title": job.result.meta.get("title")}
+        if job.result.raw_path is not None:
+            result["raw_path"] = str(job.result.raw_path)
         if include_markdown:
             result["markdown"] = job.result.markdown
+            result["raw"] = job.result.raw
     return {
         "id": job.id,
         "kind": job.kind,

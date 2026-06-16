@@ -63,6 +63,8 @@ class SummaryResult:
     path: Path
     markdown: str
     meta: dict
+    raw: str | None = None        # retained reference text (transcript / article body)
+    raw_path: Path | None = None  # where the raw sidecar was written
 
 
 # ---------- URL & metadata ----------
@@ -709,6 +711,25 @@ def write_summary(summary: str, meta: dict, out_dir: Path) -> Path:
     return path
 
 
+def transcript_to_text(segments: list[dict]) -> str:
+    """Render segments as whisper-style lines that round-trip via --transcript-file.
+
+    fmt_ts output (M:SS / H:MM:SS) matches the _WHISPER_LINE regex, so the
+    resulting file parses back into the same {text, start, duration} shape.
+    """
+    return "\n".join(
+        f"[{fmt_ts(s['start'])} --> {fmt_ts(s['start'] + s['duration'])}]  {s['text'].strip()}"
+        for s in segments
+    )
+
+
+def write_sidecar(text: str, summary_path: Path, suffix: str) -> Path:
+    """Write raw reference material next to its summary, sharing the date_slug stem."""
+    path = summary_path.with_name(summary_path.stem + suffix)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
 # ---------- Shell completion ----------
 
 BASH_COMPLETION = r"""# bash completion for summarize
@@ -778,7 +799,11 @@ def process_url(
     summary = summarize(chunks, meta, client, model, log=log)
     path = write_summary(summary, meta, out_dir)
     log(f"  ✓ wrote {path}")
-    return SummaryResult(path=path, markdown=summary, meta=meta)
+
+    raw = transcript_to_text(segments)
+    raw_path = write_sidecar(raw, path, ".transcript.txt")
+    log(f"  ✓ wrote {raw_path}")
+    return SummaryResult(path=path, markdown=summary, meta=meta, raw=raw, raw_path=raw_path)
 
 
 def process_transcript_file(
@@ -812,7 +837,11 @@ def process_transcript_file(
     summary = summarize(chunks, meta, client, model, log=log)
     path_out = write_summary(summary, meta, out_dir)
     log(f"  ✓ wrote {path_out}")
-    return SummaryResult(path=path_out, markdown=summary, meta=meta)
+
+    raw = transcript_to_text(segments)
+    raw_path = write_sidecar(raw, path_out, ".transcript.txt")
+    log(f"  ✓ wrote {raw_path}")
+    return SummaryResult(path=path_out, markdown=summary, meta=meta, raw=raw, raw_path=raw_path)
 
 
 def process_article(
@@ -836,7 +865,10 @@ def process_article(
     summary = summarize_article(chunks, meta, client, model, log=log)
     path = write_summary(summary, meta, out_dir)
     log(f"  ✓ wrote {path}")
-    return SummaryResult(path=path, markdown=summary, meta=meta)
+
+    raw_path = write_sidecar(text, path, ".source.md")
+    log(f"  ✓ wrote {raw_path}")
+    return SummaryResult(path=path, markdown=summary, meta=meta, raw=text, raw_path=raw_path)
 
 
 def main() -> None:
