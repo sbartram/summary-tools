@@ -93,11 +93,12 @@ summarize --article <url> --playwright   # force Chromium (for JS-rendered sites
 ```
 
 Output lands in `./summaries/YYYY-MM-DD_<slug>.md`. Every run also retains the
-raw source material as a sidecar with the same stem: `…<slug>.transcript.txt`
-(whisper-style timestamped lines, re-usable with `--transcript-file`) for
-videos, or `…<slug>.source.md` (extracted article body) for articles. This
-gives you the summary plus its reference material as a pair for import into a
-knowledge base.
+raw source material. For videos and `--transcript-file` runs, the transcript is
+saved to `./summaries/transcripts/<slug>.txt` (whisper-style timestamped lines,
+re-usable with `--transcript-file`), and the summary gets a `**Transcript:**`
+header linking it by relative path. For articles, the extracted body is saved as
+a `…<slug>.source.md` sidecar beside the summary. Either way you get the summary
+plus its reference material as a pair for import into a knowledge base.
 
 ## Web service (local REST job API)
 

@@ -703,12 +703,40 @@ def slugify(text: str, max_len: int = 60) -> str:
     return s[:max_len] or "video"
 
 
-def write_summary(summary: str, meta: dict, out_dir: Path) -> Path:
-    out_dir.mkdir(parents=True, exist_ok=True)
+def summary_output_path(meta: dict, out_dir: Path) -> Path:
+    """Compute the summary's output path (date-prefixed, slugified stem)."""
     date_str = _normalize_publish_date(meta.get("published")) or datetime.now().strftime("%Y-%m-%d")
-    path = out_dir / f"{date_str}_{slugify(meta['title'])}.md"
+    return out_dir / f"{date_str}_{slugify(meta['title'])}.md"
+
+
+def write_summary(summary: str, path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(summary, encoding="utf-8")
     return path
+
+
+def write_transcript(text: str, summary_path: Path) -> Path:
+    """Write the transcript into a 'transcripts/' subdir beside the summary,
+    sharing the summary's stem with a .txt extension."""
+    path = summary_path.parent / "transcripts" / f"{summary_path.stem}.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
+
+
+def insert_transcript_link(markdown: str, transcript_path: Path) -> str:
+    """Add a `**Transcript:**` header line right after `**Source:**`, linking the
+    transcript by its path relative to the summary file."""
+    rel = (Path("transcripts") / transcript_path.name).as_posix()
+    line = f"**Transcript:** {rel}"
+    new, n = re.subn(
+        r"^\*\*Source:\*\*.*$",
+        lambda m: f"{m.group(0).rstrip()}  \n{line}",
+        markdown,
+        count=1,
+        flags=re.MULTILINE,
+    )
+    return new if n else f"{markdown}\n\n{line}\n"
 
 
 def transcript_to_text(segments: list[dict]) -> str:
@@ -797,12 +825,15 @@ def process_url(
     log(f"  · {len(segments)} segments → {len(chunks)} chunk(s)")
 
     summary = summarize(chunks, meta, client, model, log=log)
-    path = write_summary(summary, meta, out_dir)
-    log(f"  ✓ wrote {path}")
+    path = summary_output_path(meta, out_dir)
 
     raw = transcript_to_text(segments)
-    raw_path = write_sidecar(raw, path, ".transcript.txt")
+    raw_path = write_transcript(raw, path)
     log(f"  ✓ wrote {raw_path}")
+
+    summary = insert_transcript_link(summary, raw_path)
+    write_summary(summary, path)
+    log(f"  ✓ wrote {path}")
     return SummaryResult(path=path, markdown=summary, meta=meta, raw=raw, raw_path=raw_path)
 
 
@@ -835,12 +866,15 @@ def process_transcript_file(
     log(f"  · {len(segments)} segments → {len(chunks)} chunk(s)")
 
     summary = summarize(chunks, meta, client, model, log=log)
-    path_out = write_summary(summary, meta, out_dir)
-    log(f"  ✓ wrote {path_out}")
+    path_out = summary_output_path(meta, out_dir)
 
     raw = transcript_to_text(segments)
-    raw_path = write_sidecar(raw, path_out, ".transcript.txt")
+    raw_path = write_transcript(raw, path_out)
     log(f"  ✓ wrote {raw_path}")
+
+    summary = insert_transcript_link(summary, raw_path)
+    write_summary(summary, path_out)
+    log(f"  ✓ wrote {path_out}")
     return SummaryResult(path=path_out, markdown=summary, meta=meta, raw=raw, raw_path=raw_path)
 
 
@@ -863,7 +897,7 @@ def process_article(
     log(f"  · {len(chunks)} chunk(s)")
 
     summary = summarize_article(chunks, meta, client, model, log=log)
-    path = write_summary(summary, meta, out_dir)
+    path = write_summary(summary, summary_output_path(meta, out_dir))
     log(f"  ✓ wrote {path}")
 
     raw_path = write_sidecar(text, path, ".source.md")
