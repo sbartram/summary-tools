@@ -65,6 +65,7 @@ Roughly $0.05–0.15 per hour of video on Sonnet. A 1-hour video typically runs 
 ## Working in this repo
 
 - **No test framework.** Manual smoke verification is the bar — run `summarize --article <url>` end-to-end rather than adding pytest or a `tests/` directory.
+- **Run scripts with `.venv/bin/python`.** Bare `python` doesn't exist on this machine and system `python3` lacks the deps (`ModuleNotFoundError: anthropic`) — go straight to `.venv/bin/python summarize.py …`.
 - **`which summarize` matters.** With direnv loaded, `summarize` on PATH resolves to `.venv/bin/summarize` (the dev install), NOT the `uv tool install` env. `uv tool install --force` won't affect the dev binary. Check before debugging "why isn't my code change picked up."
 - **`.venv` has no `pip`.** Add packages with `VIRTUAL_ENV=.venv uv pip install <pkg>`, or rebuild the venv from `requirements.txt`.
 - **Commit style.** Lowercase imperative, no `feat:` prefix (match `git log`). Add `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>` when Claude assists.
