@@ -154,6 +154,8 @@ def parse_transcript_file(path: Path) -> list[dict]:
 
 def title_from_filename(path: Path) -> str:
     stem = path.stem
+    # retained sidecars are named YYYY-MM-DD_<slug>.txt; the date isn't part of the title
+    stem = re.sub(r"^\d{4}-\d{2}-\d{2}_", "", stem)
     stem = re.sub(r"_?transcript$", "", stem, flags=re.IGNORECASE)
     return re.sub(r"[_\-]+", " ", stem).strip() or "Transcript"
 
@@ -744,9 +746,11 @@ def transcript_to_text(segments: list[dict]) -> str:
 
     fmt_ts output (M:SS / H:MM:SS) matches the _WHISPER_LINE regex, so the
     resulting file parses back into the same {text, start, duration} shape.
+    Internal newlines in segment text (common in YouTube auto-captions) are
+    collapsed to spaces so every segment stays on one parseable line.
     """
     return "\n".join(
-        f"[{fmt_ts(s['start'])} --> {fmt_ts(s['start'] + s['duration'])}]  {s['text'].strip()}"
+        f"[{fmt_ts(s['start'])} --> {fmt_ts(s['start'] + s['duration'])}]  {' '.join(s['text'].split())}"
         for s in segments
     )
 
