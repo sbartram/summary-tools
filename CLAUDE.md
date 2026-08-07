@@ -13,17 +13,7 @@ See [README.md](./README.md). Two install paths:
 
 ## Usage
 
-After install, invoke `summarize` from anywhere. During dev, `python summarize.py …` works the same.
-
-```bash
-summarize <url>                          # single video
-summarize --batch urls.txt               # one URL per line; '#' lines ignored
-summarize <url> --out-dir ./notes        # custom output directory
-summarize <url> --model claude-haiku-4-5-20251001
-summarize --transcript-file FILE [--title "..."] [--source "..."]
-summarize --article <url>                # web article (e.g. blog post)
-summarize --completion                   # emit bash completion script
-```
+After install, invoke `summarize` from anywhere. During dev, `python summarize.py …` works the same. Flags are documented in `summarize --help`.
 
 Output: `./summaries/YYYY-MM-DD_<slug>.md`
 
@@ -79,11 +69,7 @@ Roughly $0.05–0.15 per hour of video on Sonnet. A 1-hour video typically runs 
 
 ## Possible future work
 
-- **Whisper fallback** for caption-less videos. `yt-dlp -x --audio-format mp3` → `whisper.cpp` locally or OpenAI transcription API. Same `[{text, start, duration}]` shape so downstream code doesn't change.
-- **Content-hash caching** to skip already-summarized videos in batch mode. Hash the video ID + transcript, store summary path in a sidecar JSON.
-- **Configurable output template.** Hardcoded prompts now; could move to a `prompts/` directory for easy customization (study notes vs. terse bullets vs. current detailed format).
-- **Channel/playlist mode.** `yt-dlp` can enumerate playlists; would slot into the existing batch path.
-- **Stdin → knowledge-base pipe.** New script (or `--kb` flag on `summarize`) that reads URLs from stdin, one per line, auto-detects YouTube vs. article, runs the appropriate summarize pipeline, then copies the resulting `.md` into a `~/Dropbox/kb/<raw-dir>/` knowledge-base location. Unblocks `cat urls.txt | … ` and ad-hoc piping from clipboard/`pbpaste`. Open questions: how to choose which raw dir (CLI flag vs. per-URL prefix vs. content-type-based default), whether to move or copy, and whether existing summaries in `./summaries/` should still be kept as the source of truth.
+See [docs/ROADMAP.md](./docs/ROADMAP.md).
 
 ## Companion: `run_transcribe.py`
 
